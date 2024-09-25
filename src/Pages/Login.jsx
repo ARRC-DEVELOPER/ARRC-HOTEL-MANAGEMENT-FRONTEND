@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaArrowRight, FaMoon, FaSun, FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
 import logo from "../assets/logo.png";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../redux/actions/user";
+import { clearError, clearMessage } from "../redux/reducers/userReducer";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,40 +15,30 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleLogin = async () => {
-    setLoading(true);
-    try {
-      const { data } = await axios.post(
-        `http://127.0.0.1:5000/api/v1/users/login`,
-        { email, password },
-        {
-          headers: {
-            "Content-type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-      
-      if (data.user.role === "admin") {
-        navigate("/admin");
-        toast.success("Login successful!", {
-          position: "top-center",
-        });
-      } else {
-        toast.error("Invalid credentials", {
-          position: "top-center",
-        });
-      }
-    } catch (error) {
-      toast.error("An error occurred", {
+  const { loading, error, message } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (error === "Incorrect email or password.") {
+      toast.error(error, {
         position: "top-center",
       });
-    } finally {
-      setLoading(false);
+      dispatch(clearError());
     }
+
+    if (message) {
+      toast.success(message, {
+        position: "top-center",
+      });
+      dispatch(clearMessage());
+    }
+  }, [dispatch, error, message]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    dispatch(login(email, password));
   };
 
   const toggleTheme = () => {

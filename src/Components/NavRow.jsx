@@ -30,8 +30,6 @@ const Navrow = () => {
     }
   }, [isTableModalOpen]);
 
-  console.log("Krushna dike", tables);
-
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
   };
