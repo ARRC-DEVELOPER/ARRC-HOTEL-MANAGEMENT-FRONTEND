@@ -1,42 +1,106 @@
-import React from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import toast, { Toaster } from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { useFormik } from "formik";
+import { toast, ToastContainer } from "react-toastify";
+import * as Yup from "yup";
+import axios from "axios";
+import { server } from "../redux/store";
+import { FaArrowRight } from "react-icons/fa";
+import { ClipLoader } from "react-spinners";
 
 const Email = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchMailSettings = async () => {
+      try {
+        const { data } = await axios.get(
+          `${server}/mailSettings/getMailSettings`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (data.success && data.mailSettings) {
+          formik.setValues({
+            mailProtocol: data.mailSettings.mailProtocol || "",
+            mailEncryption: data.mailSettings.mailEncryption || "",
+            mailHost: data.mailSettings.mailHost || "",
+            mailPort: data.mailSettings.mailPort || "",
+            mailUsername: data.mailSettings.mailUsername || "",
+            mailPassword: "", // because security reason hide this
+          });
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        toast.error(error.message, { position: "top-center" });
+      }
+    };
+
+    fetchMailSettings();
+  }, []);
+
   // Formik setup
   const formik = useFormik({
     initialValues: {
-      mailProtocol: 'SMTP',
-      mailEncryption: 'SSL',
-      mailHost: '',
-      mailPort: '',
-      mailUsername: '',
-      mailPassword: '',
+      mailProtocol: "",
+      mailEncryption: "",
+      mailHost: "",
+      mailPort: "",
+      mailUsername: "",
+      mailPassword: "",
     },
     validationSchema: Yup.object({
-      mailHost: Yup.string().required('Mail Host is required'),
-      mailPort: Yup.number().required('Mail Port is required').integer(),
-      mailUsername: Yup.string().email('Invalid email address').required('Mail Username is required'),
-      mailPassword: Yup.string().required('Mail Password is required'),
+      mailHost: Yup.string().required("Mail Host is required"),
+      mailPort: Yup.number().required("Mail Port is required").integer(),
+      mailUsername: Yup.string()
+        .email("Invalid email address")
+        .required("Mail Username is required"),
     }),
-    onSubmit: (values) => {
-      // Simulate a successful submission
-      toast.success('Configuration saved successfully!');
-      console.log('Form Data:', values);
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          `${server}/mailSettings/updateMailSettings`,
+          values,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+
+        if (response.data.success) {
+          setLoading(false);
+          toast.success("Email Settings updated successfully!", {
+            position: "top-center",
+          });
+        }
+      } catch (error) {
+        toast.error(error.message, { position: "top-center" });
+      }
     },
   });
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="p-6">
-      {/* Toaster */}
-      <Toaster position="top-right" />
-
       {/* Breadcrumbs */}
       <nav className="text-sm font-medium text-gray-700 mb-6">
         <ol className="list-reset flex">
-          <li><a href="#" className="text-blue-600 hover:text-blue-800">Home</a></li>
-          <li><span className="mx-2"></span></li>
+          <li>
+            <a href="#" className="text-blue-600 hover:text-blue-800">
+              Home
+            </a>
+          </li>
+          <li>
+            <span className="mx-2"></span>
+          </li>
           <li>Email Configuration</li>
         </ol>
       </nav>
@@ -48,7 +112,10 @@ const Email = () => {
       <form onSubmit={formik.handleSubmit} className="space-y-4">
         {/* Mail Protocol */}
         <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="mailProtocol">
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor="mailProtocol"
+          >
             Mail Protocol *
           </label>
           <select
@@ -65,7 +132,10 @@ const Email = () => {
 
         {/* Mail Encryption */}
         <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="mailEncryption">
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor="mailEncryption"
+          >
             Mail Encryption *
           </label>
           <select
@@ -82,7 +152,10 @@ const Email = () => {
 
         {/* Mail Host */}
         <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="mailHost">
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor="mailHost"
+          >
             Mail Host *
           </label>
           <input
@@ -95,13 +168,18 @@ const Email = () => {
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
           {formik.touched.mailHost && formik.errors.mailHost ? (
-            <p className="text-red-600 text-sm mt-1">{formik.errors.mailHost}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {formik.errors.mailHost}
+            </p>
           ) : null}
         </div>
 
         {/* Mail Port */}
         <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="mailPort">
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor="mailPort"
+          >
             Mail Port *
           </label>
           <input
@@ -114,13 +192,18 @@ const Email = () => {
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
           {formik.touched.mailPort && formik.errors.mailPort ? (
-            <p className="text-red-600 text-sm mt-1">{formik.errors.mailPort}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {formik.errors.mailPort}
+            </p>
           ) : null}
         </div>
 
         {/* Mail Username */}
         <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="mailUsername">
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor="mailUsername"
+          >
             Mail Username *
           </label>
           <input
@@ -133,13 +216,18 @@ const Email = () => {
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
           {formik.touched.mailUsername && formik.errors.mailUsername ? (
-            <p className="text-red-600 text-sm mt-1">{formik.errors.mailUsername}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {formik.errors.mailUsername}
+            </p>
           ) : null}
         </div>
 
         {/* Mail Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="mailPassword">
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor="mailPassword"
+          >
             Mail Password *
           </label>
           <input
@@ -152,7 +240,9 @@ const Email = () => {
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
           {formik.touched.mailPassword && formik.errors.mailPassword ? (
-            <p className="text-red-600 text-sm mt-1">{formik.errors.mailPassword}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {formik.errors.mailPassword}
+            </p>
           ) : null}
         </div>
 
@@ -162,10 +252,12 @@ const Email = () => {
             type="submit"
             className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Save Changes
+            {loading ? <ClipLoader size={24} color="#fff" /> : "Save Changes"}{" "}
+            <FaArrowRight className="inline ml-2" />
           </button>
         </div>
       </form>
+      <ToastContainer />
     </div>
   );
 };

@@ -406,11 +406,11 @@ const MainLayout = () => {
           icon: <FontAwesomeIcon icon={faAngleRight} />,
           label: "Email",
         },
-        {
-          key: "language",
-          icon: <FontAwesomeIcon icon={faAngleRight} />,
-          label: "Language",
-        },
+        // {
+        //   key: "language",
+        //   icon: <FontAwesomeIcon icon={faAngleRight} />,
+        //   label: "Language",
+        // },
         {
           key: "paymentmethods",
           icon: <FontAwesomeIcon icon={faAngleRight} />,
@@ -436,11 +436,11 @@ const MainLayout = () => {
           icon: <FontAwesomeIcon icon={faAngleRight} />,
           label: "Email Templates",
         },
-        {
-          key: "createpermission",
-          icon: <FontAwesomeIcon icon={faAngleRight} />,
-          label: "Theme",
-        },
+        // {
+        //   key: "createpermission",
+        //   icon: <FontAwesomeIcon icon={faAngleRight} />,
+        //   label: "Theme",
+        // },
       ],
     },
     {

@@ -62,7 +62,7 @@ import ResetPassword from "./Pages/ResetPassword.jsx";
 import General from "./Pages/General.jsx";
 import System from "./Pages/System.jsx";
 import Email from "./Pages/Email.jsx";
-import Language from "./Pages/Language.jsx";
+// import Language from "./Pages/Language.jsx";
 import EmailTemplates from "./Pages/EmailTemplates.jsx";
 import Payroll from "./Pages/Payroll.jsx";
 import Attendance from "./Pages/Attendence.jsx";
@@ -175,7 +175,7 @@ function App() {
                   <Route path="general" element={<General />} />
                   <Route path="system" element={<System />} />
                   <Route path="email" element={<Email />} />
-                  <Route path="language" element={<Language />} />
+                  {/* <Route path="language" element={<Language />} /> */}
                   <Route path="emailtemplates" element={<EmailTemplates />} />
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="payroll" element={<Payroll />} />
