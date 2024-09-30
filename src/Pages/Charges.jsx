@@ -9,6 +9,7 @@ import { server } from "../redux/store";
 import { Switch } from "@chakra-ui/react";
 
 const Charges = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [charges, setCharges] = useState([]);
   const [editingCharge, setEditingCharge] = useState(null);
@@ -21,13 +22,18 @@ const Charges = () => {
   }, [page]);
 
   const fetchCharges = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(
         `${server}/charges/getCharges?page=${page}&limit=${pageSize}`
       );
       setCharges(response.data);
+      setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,7 +91,7 @@ const Charges = () => {
         position: "top-center",
       });
 
-      fetchCharges(); 
+      fetchCharges();
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to update default status",
@@ -172,6 +178,10 @@ const Charges = () => {
   const filteredData = charges.filter((charge) =>
     charge.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="p-6">

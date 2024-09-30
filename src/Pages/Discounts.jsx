@@ -5,27 +5,35 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaHome, FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import { Switch } from "antd";
+import { server } from "../redux/store";
+import { Switch } from "@chakra-ui/react";
 
 const Discounts = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [discounts, setDiscounts] = useState([]);
   const [editingDiscount, setEditingDiscount] = useState(null);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
 
   useEffect(() => {
     fetchDiscounts();
-  }, []);
+  }, [page]);
 
   const fetchDiscounts = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(
-        "https://arrc-tech.onrender.com/api/discounts"
+        `${server}/discounts/getDiscounts?page=${page}&limit=${pageSize}`
       );
       setDiscounts(response.data);
+      setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
       console.error(error);
-      toast.error("Failed to fetch discounts");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,24 +41,26 @@ const Discounts = () => {
     try {
       if (editingDiscount) {
         await axios.put(
-          `https://arrc-tech.onrender.com/api/discounts/${editingDiscount._id}`,
+          `${server}/discounts/updateDiscount/${editingDiscount._id}`,
           values
         );
-        toast.success("Discount updated successfully");
+        toast.success("Discount updated successfully", {
+          position: "top-center",
+        });
       } else {
-        await axios.post(
-          "https://arrc-tech.onrender.com/api/discounts",
-          values
-        );
-        toast.success("Discount added successfully");
+        await axios.post(`${server}/discounts/createDiscount`, values);
+        toast.success("Discount added successfully", {
+          position: "top-center",
+        });
       }
       fetchDiscounts();
       resetForm();
       setModalOpen(false);
       setEditingDiscount(null);
     } catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Failed to save discount");
+      toast.error("Failed to save Discount", {
+        position: "top-center",
+      });
     }
   };
 
@@ -61,18 +71,19 @@ const Discounts = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://arrc-tech.onrender.com/api/discounts/${id}`);
-      toast.success("Discount deleted successfully");
+      await axios.delete(`${server}/discounts/deleteDiscount/${id}`);
+      toast.success("Discount deleted successfully", {
+        position: "top-center",
+      });
       fetchDiscounts();
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Failed to delete discount");
     }
   };
 
   const handleSwitchChange = async (id, checked) => {
     try {
-      await axios.put(`${server}/charges/updateDefault/${id}`, {
+      await axios.put(`${server}/discounts/updateDefault/${id}`, {
         isDefault: checked,
       });
 
@@ -80,7 +91,7 @@ const Discounts = () => {
         position: "top-center",
       });
 
-      fetchCharges(); 
+      fetchDiscounts();
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to update default status",
@@ -99,9 +110,12 @@ const Discounts = () => {
       .required("Value is required"),
   });
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="p-6">
-      <ToastContainer />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">Discounts</h1>
         <div className="flex items-center space-x-2">
@@ -154,11 +168,11 @@ const Discounts = () => {
                   </td>
                   <td className="px-4 py-2 border">
                     <Switch
-                      checked={discount.isDefault}
+                      colorScheme="teal"
+                      isChecked={discount.isDefault}
                       onChange={(e) =>
                         handleSwitchChange(discount._id, e.target.checked)
                       }
-                      disabled
                     />
                   </td>
                   <td className="px-4 py-2 border">
@@ -294,6 +308,7 @@ const Discounts = () => {
               )}
             </Formik>
           </div>
+          <ToastContainer />
         </div>
       )}
     </div>
