@@ -1,3 +1,4 @@
+import React from 'react'
 import { useState } from 'react';
 import { FaSun, FaMoon, FaGlobe, FaUserCircle, FaBars, FaHome, FaStore, FaDesktop, FaCashRegister, FaList } from 'react-icons/fa';
 import logo from '../assets/logo.png'

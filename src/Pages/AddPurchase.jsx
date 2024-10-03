@@ -4,8 +4,8 @@ import * as Yup from "yup";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
+import { server } from "../redux/store";
 import "react-toastify/dist/ReactToastify.css";
-import PaymentMethod from "../Pages/PaymentMethods"; // Import the PaymentMethod component
 
 const AddPurchase = () => {
   const [cart, setCart] = useState([]);
@@ -17,18 +17,11 @@ const AddPurchase = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const navigate = useNavigate();
 
-  const handlePaymentMethodsFetched = (methods) => {
-    setPaymentMethods(methods);
-  };
   useEffect(() => {
-    // Fetch suppliers
     const fetchSuppliers = async () => {
       try {
-        const response = await axios.get(
-          "https://arrc-tech.onrender.com/api/suppliers"
-        );
+        const response = await axios.get(`${server}/suppliers/getSuppliers`);
         if (response.data) {
-          console.log("suppliers methods fetched:", response.data);
           setSuppliers(response.data);
         } else {
           toast.error("No suppliers data available.");
@@ -38,15 +31,13 @@ const AddPurchase = () => {
       }
     };
 
-    // Fetch payment methods
     const fetchPaymentMethods = async () => {
       try {
         const response = await axios.get(
-          "https://arrc-tech.onrender.com/api/paymentmethods"
+          `${server}/paymentmethods/getPaymentMethods`
         );
         if (response.data) {
-          console.log("Payment methods fetched:", response.data); // Debugging
-          setPaymentMethods(response.data); // Assuming response.data is the array of payment methods
+          setPaymentMethods(response.data);
         } else {
           toast.error("No payment methods data available.");
         }
@@ -55,11 +46,10 @@ const AddPurchase = () => {
       }
     };
 
-    // Fetch ingredients
     const fetchIngredients = async () => {
       try {
         const response = await axios.get(
-          "https://arrc-tech.onrender.com/api/ingredients"
+          `${server}/ingredients/getAllIngredients`
         );
         if (response.data) {
           setIngredients(response.data);
@@ -75,18 +65,15 @@ const AddPurchase = () => {
     fetchPaymentMethods();
     fetchIngredients();
   }, []);
-  useEffect(() => {
-    console.log("Payment Methods:", paymentMethods); // Debugging
-  }, [paymentMethods]);
 
   const formik = useFormik({
     initialValues: {
       supplierId: "",
-      invoiceNo: "",
       paymentMethod: "",
+      ingredientId: "",
+      invoiceNo: "",
       purchaseDate: "",
       description: "",
-      ingredientItem: "",
       paidAmount: 0,
     },
     validationSchema: Yup.object({
@@ -108,17 +95,14 @@ const AddPurchase = () => {
     }),
     onSubmit: async (values) => {
       try {
-        const response = await axios.post(
-          "https://arrc-tech.onrender.com/api/invoices",
-          {
-            ...values,
-            items: cart,
-            totalBill,
-            dueAmount,
-          }
-        );
+        await axios.post(`${server}/purchase/addPurchase`, {
+          ...values,
+          totalBill,
+          dueAmount,
+        });
+
         toast.success("Purchase submitted successfully!");
-        navigate("/admin/purchasehistory");
+        navigate("/purchasehistory");
       } catch (error) {
         toast.error("Failed to submit the purchase.");
       }
@@ -141,6 +125,10 @@ const AddPurchase = () => {
     const selectedItem = ingredients.find(
       (item) => item._id === e.target.value
     );
+
+    // Set ingredientId in Formik state
+    formik.setFieldValue("ingredientId", e.target.value);
+
     if (selectedItem) {
       const newItem = {
         itemName: selectedItem.name,
@@ -218,7 +206,7 @@ const AddPurchase = () => {
                 >
                   {suppliers.length > 0 ? (
                     suppliers
-                      .filter((supplier) => supplier.supplierName) // Only include suppliers with a name
+                      .filter((supplier) => supplier.supplierName)
                       .map((supplier) => (
                         <option key={supplier._id} value={supplier._id}>
                           {supplier.supplierName}

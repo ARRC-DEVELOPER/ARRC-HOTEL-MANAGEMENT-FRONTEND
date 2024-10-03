@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import axios from "axios";
+import { server } from "../redux/store";
 import {
   FaHamburger,
   FaTruck,
@@ -10,19 +13,58 @@ import {
   FaEdit,
 } from "react-icons/fa";
 
-const Navrow = () => {
-  const [selectedTab, setSelectedTab] = useState("dineIn");
+import CustomerModal from "./CustomerModal";
+import WaiterModal from "./WaiterModal";
+import DriverModal from "./DriverModal";
+
+const Navrow = ({ selectedItems, subTotal, discount, charge, tax, total }) => {
+  const [selectedTab, setSelectedTab] = useState("DineIn");
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+  const [isWaiterModalOpen, setIsWaiterModalOpen] = useState(false);
+  const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [tables, setTables] = useState([]);
+
   const [selectedTable, setSelectedTable] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedWaiter, setSelectedWaiter] = useState(null);
+  const [selectedDriver, setSelectedDriver] = useState(null);
   const [selectedGuest, setSelectedGuest] = useState(null);
+
+  const orderDetails = {
+    orderType: selectedTab,
+    customer: selectedCustomer && selectedCustomer._id,
+    items: selectedItems ? selectedItems : [],
+    subTotal: subTotal,
+    totalPrice: total,
+    tax: tax,
+    discount: discount,
+    charge: charge,
+    dineInDetails: {
+      guest: selectedGuest,
+      table: selectedTable && selectedTable._id,
+      waiter: selectedWaiter && selectedWaiter._id,
+    },
+    deliveryDetails: {
+      driver: selectedDriver && selectedDriver._id,
+    },
+    pickupDetails: {
+      waiter: selectedWaiter && selectedWaiter._id,
+    },
+  };
+
+  console.log(orderDetails);
+
+  // Callback function to handle selected customer
+  const handleSelectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    setIsCustomerModalOpen(false);
+  };
 
   // Fetch tables from API
   useEffect(() => {
     if (isTableModalOpen) {
-      // Example API call to fetch tables (replace with actual API)
       fetch("https://arrc-tech.onrender.com/api/tables")
         .then((response) => response.json())
         .then((data) => setTables(data))
@@ -46,6 +88,14 @@ const Navrow = () => {
     setIsGuestModalOpen(true);
   };
 
+  const handleWaiterSelectClick = () => {
+    setIsWaiterModalOpen(true);
+  };
+
+  const handleDriverSelectClick = () => {
+    setIsDriverModalOpen(true);
+  };
+
   const handleGuestSelection = (guest) => {
     setSelectedGuest(guest);
     setIsGuestModalOpen(false);
@@ -56,100 +106,131 @@ const Navrow = () => {
     setIsTableModalOpen(false);
   };
 
+  const handleWaiterSelection = (waiter) => {
+    setSelectedWaiter(waiter);
+    setIsWaiterModalOpen(false);
+  };
+
+  const handleDriverSelection = (driver) => {
+    setSelectedDriver(driver);
+    setIsDriverModalOpen(false);
+  };
+
+  const handleSubmitOrder = async () => {
+    try {
+      await axios.post(`${server}/order/createOrder`, orderDetails, {
+        headers: {
+          "Content-type": "application/json",
+        },
+        withCredentials: true,
+      });
+
+      toast.success("Order created successfully!", {
+        position: "top-center",
+      });
+    } catch (error) {
+      console.error("Error creating order:", error);
+      toast.error("Failed to created order!", {
+        position: "top-center",
+      });
+    }
+  };
+
   const renderDynamicContent = () => {
     switch (selectedTab) {
-      case "dineIn":
+      case "DineIn":
         return (
           <div className="mt-4">
             <div className="flex items-center space-x-2">
               <span># Dine In</span>
-              <FaEdit className="cursor-pointer" />
-              <span>Default Customer</span>
+
+              <span>
+                Select Customer (
+                {selectedCustomer ? `${selectedCustomer.name}` : ""})
+              </span>
               <FaEdit
                 className="cursor-pointer"
                 onClick={handleCustomerEditClick}
               />
+
               <span>
-                Select Table{" "}
+                Select Table
                 {selectedTable ? `(Table: ${selectedTable.tableName})` : ""}
               </span>
               <FaEdit
                 className="cursor-pointer"
                 onClick={handleTableSelectClick}
               />
+
               <span>
-                Select Guest{" "}
+                Select Guest
                 {selectedGuest !== null ? `(${selectedGuest})` : ""}
               </span>
               <FaEdit
                 className="cursor-pointer"
                 onClick={handleGuestSelectClick}
               />
+
+              <span>
+                Select Waiter (
+                {selectedWaiter ? `${selectedWaiter.username}` : ""})
+              </span>
+              <FaEdit
+                className="cursor-pointer"
+                onClick={handleWaiterSelectClick}
+              />
             </div>
           </div>
         );
-      case "pickUp":
+      case "Pickup":
         return (
           <div className="mt-4">
-            <h2>Pick Up Orders</h2>
-            <div className="mt-4">
-              <div className="flex items-center space-x-2">
-                <span># Dine In</span>
-                <FaEdit className="cursor-pointer" />
-                <span>Default Customer</span>
-                <FaEdit
-                  className="cursor-pointer"
-                  onClick={handleCustomerEditClick}
-                />
-                <span>
-                  Select Table{" "}
-                  {selectedTable ? `(Table: ${selectedTable.tableName})` : ""}
-                </span>
-                <FaEdit
-                  className="cursor-pointer"
-                  onClick={handleTableSelectClick}
-                />
-                <span>
-                  Select Guest{" "}
-                  {selectedGuest !== null ? `(${selectedGuest})` : ""}
-                </span>
-                <FaEdit
-                  className="cursor-pointer"
-                  onClick={handleGuestSelectClick}
-                />
-              </div>
-            </div>{" "}
+            <div className="flex items-center space-x-2">
+              <span># Pick Up</span>
+
+              <span>
+                Select Customer (
+                {selectedCustomer ? `${selectedCustomer.name}` : ""})
+              </span>
+              <FaEdit
+                className="cursor-pointer"
+                onClick={handleCustomerEditClick}
+              />
+
+              <span>
+                Select Waiter (
+                {selectedWaiter ? `${selectedWaiter.username}` : ""})
+              </span>
+              <FaEdit
+                className="cursor-pointer"
+                onClick={handleWaiterSelectClick}
+              />
+            </div>
           </div>
         );
-      case "delivery":
+      case "Delivery":
         return (
           <div className="mt-4">
-            <div className="mt-4">
-              <div className="flex items-center space-x-2">
-                <span># Dine In</span>
-                <FaEdit className="cursor-pointer" />
-                <span>Default Customer</span>
-                <FaEdit
-                  className="cursor-pointer"
-                  onClick={handleCustomerEditClick}
-                />
-                <span>
-                  Select Table{" "}
-                  {selectedTable ? `(Table: ${selectedTable.tableName})` : ""}
-                </span>
-                <FaEdit
-                  className="cursor-pointer"
-                  onClick={handleTableSelectClick}
-                />
-                <span>
-                  Select Guest{" "}
-                  {selectedGuest !== null ? `(${selectedGuest})` : ""}
-                </span>
-                <FaEdit
-                  className="cursor-pointer"
-                  onClick={handleGuestSelectClick}
-                />
-              </div>
+            <div className="flex items-center space-x-2">
+              <span># Delivery</span>
+
+              <span>
+                Select Customer (
+                {selectedCustomer ? `${selectedCustomer.name}` : ""})
+              </span>
+              <FaEdit
+                className="cursor-pointer"
+                onClick={handleCustomerEditClick}
+              />
+
+              <span>
+                Select Driver (
+                {selectedDriver ? `${selectedDriver.username}` : ""})
+              </span>
+              <FaEdit
+                className="cursor-pointer"
+                onClick={handleDriverSelectClick}
+              />
             </div>
           </div>
         );
@@ -160,7 +241,7 @@ const Navrow = () => {
             <div className="mt-4">
               <div className="flex items-center space-x-2">
                 <span># Dine In</span>
-                <FaEdit className="cursor-pointer" />
+
                 <span>Default Customer</span>
                 <FaEdit
                   className="cursor-pointer"
@@ -201,7 +282,7 @@ const Navrow = () => {
               ? "text-blue-600"
               : "hover:text-gray-900 dark:hover:text-white"
           }`}
-          onClick={() => handleTabClick("dineIn")}
+          onClick={() => handleTabClick("DineIn")}
         >
           <FaHamburger className="mr-2" /> Dine In
         </button>
@@ -211,7 +292,7 @@ const Navrow = () => {
               ? "text-blue-600"
               : "hover:text-gray-900 dark:hover:text-white"
           }`}
-          onClick={() => handleTabClick("pickUp")}
+          onClick={() => handleTabClick("Pickup")}
         >
           <FaTruck className="mr-2" /> Pick Up
         </button>
@@ -221,7 +302,7 @@ const Navrow = () => {
               ? "text-blue-600"
               : "hover:text-gray-900 dark:hover:text-white"
           }`}
-          onClick={() => handleTabClick("delivery")}
+          onClick={() => handleTabClick("Delivery")}
         >
           <FaMoneyBill className="mr-2" /> Delivery
         </button>
@@ -267,7 +348,7 @@ const Navrow = () => {
         </button>
         <button
           className="flex items-center hover:text-gray-900 dark:hover:text-white"
-          onClick={() => handleTabClick("submit")}
+          onClick={handleSubmitOrder}
         >
           <FaBars className="mr-2" /> Submit
         </button>
@@ -276,70 +357,11 @@ const Navrow = () => {
       {renderDynamicContent()}
 
       {/* Modal for Customer Edit */}
-      {isCustomerModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg max-w-lg">
-            <h2 className="text-lg font-bold mb-4">Customer</h2>
-            <form>
-              <div className="mb-4">
-                <label className="block text-gray-700">Search</label>
-                <input
-                  type="text"
-                  placeholder="Search Customer"
-                  className="w-full px-3 py-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Customer Name *</label>
-                <input
-                  type="text"
-                  placeholder="Enter Customer Name"
-                  className="w-full px-3 py-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Email</label>
-                <input
-                  type="email"
-                  placeholder="Enter Email"
-                  className="w-full px-3 py-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Phone Number *</label>
-                <input
-                  type="tel"
-                  placeholder="Enter Phone Number"
-                  className="w-full px-3 py-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Address</label>
-                <input
-                  type="text"
-                  placeholder="Enter Address"
-                  className="w-full px-3 py-2 border rounded"
-                />
-              </div>
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-gray-300 rounded"
-                  onClick={() => setIsCustomerModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CustomerModal
+        showModal={isCustomerModalOpen}
+        setShowModal={setIsCustomerModalOpen}
+        onSelectCustomer={handleSelectCustomer}
+      />
 
       {/* Modal for Table Selection */}
       {isTableModalOpen && (
@@ -407,6 +429,22 @@ const Navrow = () => {
           </div>
         </div>
       )}
+
+      {/* Modal for waiter selection */}
+      <WaiterModal
+        isOpen={isWaiterModalOpen}
+        onClose={() => setIsWaiterModalOpen(false)}
+        onSelectWaiter={handleWaiterSelection}
+      />
+
+      {/* Modal for driver selection */}
+      <DriverModal
+        isOpen={isDriverModalOpen}
+        onClose={() => setIsDriverModalOpen(false)}
+        onSelectDriver={handleDriverSelection}
+      />
+
+      <ToastContainer />
     </div>
   );
 };
