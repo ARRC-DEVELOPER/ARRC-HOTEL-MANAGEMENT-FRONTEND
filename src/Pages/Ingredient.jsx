@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaEdit, FaTrash } from 'react-icons/fa';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaEdit, FaTrash } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import { server } from "../redux/store";
 
 export default function Ingredient() {
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,15 +19,17 @@ export default function Ingredient() {
 
   const fetchIngredients = async () => {
     try {
-      const response = await axios.get('https://arrc-tech.onrender.com/api/ingredients');
+      const response = await axios.get(
+        `${server}/ingredients/getAllIngredients`
+      );
       setIngredients(response.data);
     } catch (error) {
-      toast.error('Error fetching ingredients: ' + error.message);
+      toast.error("Error fetching ingredients: " + error.message);
     }
   };
 
   const handleAddNew = () => {
-    navigate('/admin/addingredient');
+    navigate("/addingredient");
   };
 
   const handleEdit = (ingredient) => {
@@ -35,16 +38,16 @@ export default function Ingredient() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this ingredient?')) {
+    if (window.confirm("Are you sure you want to delete this ingredient?")) {
       try {
-        await axios.delete(`https://arrc-tech.onrender.com/api/ingredients/${id}`);
+        await axios.delete(`${server}/ingredients/deleteIngredient/${id}`);
         setIngredients((prevIngredients) =>
           prevIngredients.filter((ingredient) => ingredient._id !== id)
         );
-        toast.success('Ingredient deleted successfully');
+        toast.success("Ingredient deleted successfully");
       } catch (error) {
-        console.error('Error deleting ingredient:', error);
-        toast.error('Error deleting ingredient: ' + error.message);
+        console.error("Error deleting ingredient:", error);
+        toast.error("Error deleting ingredient: " + error.message);
       }
     }
   };
@@ -56,16 +59,21 @@ export default function Ingredient() {
 
   const handleModalSave = async (updatedIngredient) => {
     try {
-      await axios.put(`https://arrc-tech.onrender.com/api/ingredients/${updatedIngredient._id}`, updatedIngredient);
+      await axios.put(
+        `${server}/ingredients/updateIngredient/${updatedIngredient._id}`,
+        updatedIngredient
+      );
       setIngredients((prevIngredients) =>
         prevIngredients.map((ingredient) =>
-          ingredient._id === updatedIngredient._id ? updatedIngredient : ingredient
+          ingredient._id === updatedIngredient._id
+            ? updatedIngredient
+            : ingredient
         )
       );
-      toast.success('Ingredient updated successfully');
+      toast.success("Ingredient updated successfully");
       handleModalClose();
     } catch (error) {
-      toast.error('Error updating ingredient: ' + error.message);
+      toast.error("Error updating ingredient: " + error.message);
     }
   };
 
@@ -83,14 +91,19 @@ export default function Ingredient() {
 
       <div className="mb-4">
         <nav className="text-gray-600">
-          <a href="/" className="hover:underline">Home</a> &gt;
+          <a href="/" className="hover:underline">
+            Home
+          </a>{" "}
+          &gt;
           <span className="font-semibold">Ingredients</span>
         </nav>
       </div>
 
       <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center">
-          <label htmlFor="search" className="mr-2">Search:</label>
+          <label htmlFor="search" className="mr-2">
+            Search:
+          </label>
           <input
             id="search"
             type="text"
@@ -120,7 +133,9 @@ export default function Ingredient() {
               <th className="border border-gray-300 px-4 py-2">Item Name</th>
               <th className="border border-gray-300 px-4 py-2">Price</th>
               <th className="border border-gray-300 px-4 py-2">Quantity</th>
-              <th className="border border-gray-300 px-4 py-2">Alert Quantity</th>
+              <th className="border border-gray-300 px-4 py-2">
+                Alert Quantity
+              </th>
               <th className="border border-gray-300 px-4 py-2">Updated At</th>
               <th className="border border-gray-300 px-4 py-2">Updated By</th>
               <th className="border border-gray-300 px-4 py-2">Action</th>
@@ -133,13 +148,27 @@ export default function Ingredient() {
               )
               .map((ingredient, index) => (
                 <tr key={ingredient._id}>
-                  <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
-                  <td className="border border-gray-300 px-4 py-2">{ingredient.name}</td>
-                  <td className="border border-gray-300 px-4 py-2">₹{ingredient.price?.toFixed(2)}</td>
-                  <td className="border border-gray-300 px-4 py-2">{ingredient.quantity}</td>
-                  <td className="border border-gray-300 px-4 py-2">{ingredient.alertQuantity}</td>
-                  <td className="border border-gray-300 px-4 py-2">{new Date(ingredient.updatedAt).toLocaleString()}</td>
-                  <td className="border border-gray-300 px-4 py-2">{ingredient.updatedBy}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {index + 1}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {ingredient.name}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    ₹{ingredient.price?.toFixed(2)}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {ingredient.quantity}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {ingredient.alertQuantity}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {new Date(ingredient.updatedAt).toLocaleString()}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {ingredient.updatedBy}
+                  </td>
                   <td className="border border-gray-300 px-4 py-2 flex space-x-2">
                     <button
                       onClick={() => handleEdit(ingredient)}
@@ -169,9 +198,12 @@ export default function Ingredient() {
                 <label className="block mb-1 font-semibold">Name:</label>
                 <input
                   type="text"
-                  value={selectedIngredient.name || ''}
+                  value={selectedIngredient.name || ""}
                   onChange={(e) =>
-                    setSelectedIngredient({ ...selectedIngredient, name: e.target.value })
+                    setSelectedIngredient({
+                      ...selectedIngredient,
+                      name: e.target.value,
+                    })
                   }
                   className="border border-gray-300 rounded px-2 py-1 w-full"
                 />
@@ -180,9 +212,12 @@ export default function Ingredient() {
                 <label className="block mb-1 font-semibold">Description:</label>
                 <input
                   type="text"
-                  value={selectedIngredient.description || ''}
+                  value={selectedIngredient.description || ""}
                   onChange={(e) =>
-                    setSelectedIngredient({ ...selectedIngredient, description: e.target.value })
+                    setSelectedIngredient({
+                      ...selectedIngredient,
+                      description: e.target.value,
+                    })
                   }
                   className="border border-gray-300 rounded px-2 py-1 w-full"
                 />
@@ -191,9 +226,12 @@ export default function Ingredient() {
                 <label className="block mb-1 font-semibold">Price:</label>
                 <input
                   type="number"
-                  value={selectedIngredient.price || ''}
+                  value={selectedIngredient.price || ""}
                   onChange={(e) =>
-                    setSelectedIngredient({ ...selectedIngredient, price: parseFloat(e.target.value) })
+                    setSelectedIngredient({
+                      ...selectedIngredient,
+                      price: parseFloat(e.target.value),
+                    })
                   }
                   className="border border-gray-300 rounded px-2 py-1 w-full"
                 />
@@ -202,20 +240,28 @@ export default function Ingredient() {
                 <label className="block mb-1 font-semibold">Quantity:</label>
                 <input
                   type="number"
-                  value={selectedIngredient.quantity || ''}
+                  value={selectedIngredient.quantity || ""}
                   onChange={(e) =>
-                    setSelectedIngredient({ ...selectedIngredient, quantity: parseInt(e.target.value) })
+                    setSelectedIngredient({
+                      ...selectedIngredient,
+                      quantity: parseInt(e.target.value),
+                    })
                   }
                   className="border border-gray-300 rounded px-2 py-1 w-full"
                 />
               </div>
               <div>
-                <label className="block mb-1 font-semibold">Alert Quantity:</label>
+                <label className="block mb-1 font-semibold">
+                  Alert Quantity:
+                </label>
                 <input
                   type="number"
-                  value={selectedIngredient.alertQuantity || ''}
+                  value={selectedIngredient.alertQuantity || ""}
                   onChange={(e) =>
-                    setSelectedIngredient({ ...selectedIngredient, alertQuantity: parseInt(e.target.value) })
+                    setSelectedIngredient({
+                      ...selectedIngredient,
+                      alertQuantity: parseInt(e.target.value),
+                    })
                   }
                   className="border border-gray-300 rounded px-2 py-1 w-full"
                 />

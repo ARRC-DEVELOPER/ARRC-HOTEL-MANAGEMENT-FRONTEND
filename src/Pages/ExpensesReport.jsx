@@ -278,7 +278,7 @@ const ExpenseReport = () => {
 
       {/* Summary */}
       <div className="mt-4">
-        <p>Overall Expense: ₹{total.toFixed(2)}</p>
+        <p className="font-bold">Overall Expense: ₹{total.toFixed(2)}</p>
       </div>
     </div>
   );
