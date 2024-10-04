@@ -95,11 +95,20 @@ const AddPurchase = () => {
     }),
     onSubmit: async (values) => {
       try {
-        await axios.post(`${server}/purchase/addPurchase`, {
-          ...values,
-          totalBill,
-          dueAmount,
-        });
+        await axios.post(
+          `${server}/purchase/addPurchase`,
+          {
+            ...values,
+            totalBill,
+            dueAmount,
+          },
+          {
+            headers: {
+              "Content-type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
 
         toast.success("Purchase submitted successfully!");
         navigate("/purchasehistory");

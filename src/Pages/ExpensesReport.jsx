@@ -1,26 +1,125 @@
-import React from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { toast } from 'react-hot-toast';
-import { FaPrint, FaFilePdf, FaFileExcel, FaFileCsv } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { ToastContainer, toast } from "react-toastify";
+import { FaFilePdf, FaPrint, FaFileExcel, FaFileCsv } from "react-icons/fa";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { utils, writeFile } from "xlsx";
+import Papa from "papaparse";
+import axios from "axios";
+import { server } from "../redux/store";
+import moment from "moment";
 
 const ExpenseReport = () => {
-  // Formik setup
+  const [expenses, setExpenses] = useState([]);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const response = await axios.get(`${server}/purchase/getAllExpenses`);
+        setExpenses(response.data.data);
+        calculateTotals(response.data.data);
+      } catch (error) {
+        console.error("Error fetching expenses:", error);
+      }
+    };
+
+    fetchExpenses();
+  }, []);
+
   const formik = useFormik({
     initialValues: {
-      period: 'Daily',
-      fromDate: '09/02/2024',
-      toDate: '09/02/2024',
+      period: "Daily",
+      fromDate: "2024-09-02",
+      toDate: "2024-09-02",
     },
     validationSchema: Yup.object({
-      fromDate: Yup.date().required('From date is required'),
-      toDate: Yup.date().required('To date is required'),
+      fromDate: Yup.date().required("From date is required"),
+      toDate: Yup.date().required("To date is required"),
     }),
-    onSubmit: (values) => {
-      // Handle filter logic here
-      toast.success('Filter applied successfully');
+    onSubmit: async (values) => {
+      const formattedFromDate = moment(values.fromDate).format("DD-MM-YYYY");
+      const formattedToDate = moment(values.toDate).format("DD-MM-YYYY");
+      try {
+        const response = await axios.get(`${server}/purchase/getAllExpenses`, {
+          params: {
+            period: values.period.toLowerCase(),
+            from: formattedFromDate,
+            to: formattedToDate,
+          },
+        });
+
+        setExpenses(response.data.data);
+        calculateTotals(response.data.data);
+
+        toast.success("Expenses filtered successfully!", {
+          position: "top-center",
+        });
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message || "Failed to filter expenses",
+          { position: "top-center" }
+        );
+      }
     },
   });
+
+  const calculateTotals = (expenseData) => {
+    const totalAmount = expenseData.reduce(
+      (sum, expense) => sum + expense.totalExpense,
+      0
+    );
+
+    setTotal(totalAmount);
+  };
+
+  // Export functions
+  const exportToPdf = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(12);
+    doc.text("Expense Report", 14, 22);
+
+    const headers = [["Total Amount ", "Period"]];
+    const data = expenses.map((expense) => [
+      `₹${expense.totalExpense}`,
+      `₹${expense.period}`,
+    ]);
+
+    const content = {
+      head: headers,
+      body: data,
+    };
+
+    doc.autoTable(content);
+    doc.save("expense_report.pdf");
+    toast.success("Exported to PDF...");
+  };
+
+  const exportToExcel = () => {
+    const worksheet = utils.json_to_sheet(expenses);
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Report");
+    writeFile(workbook, "sales_report.xlsx");
+    toast.success("Exported to Excel");
+  };
+
+  const exportToCsv = () => {
+    const csv = Papa.unparse(expenses);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "sales_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Exported to CSV");
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <div className="p-6">
@@ -30,7 +129,10 @@ const ExpenseReport = () => {
       {/* Breadcrumbs */}
       <div className="mb-4">
         <nav className="text-sm text-gray-600">
-          <a href="#" className="hover:underline">Home</a> &gt; <span>Expense Report</span>
+          <a href="#" className="hover:underline">
+            Home
+          </a>{" "}
+          &gt; <span>Expense Report</span>
         </nav>
       </div>
 
@@ -38,7 +140,9 @@ const ExpenseReport = () => {
       <form onSubmit={formik.handleSubmit} className="mb-4">
         <div className="flex mb-4 space-x-4">
           <div className="flex flex-col w-1/4">
-            <label htmlFor="period" className="text-sm font-medium mb-1">Period *</label>
+            <label htmlFor="period" className="text-sm font-medium mb-1">
+              Period *
+            </label>
             <select
               id="period"
               name="period"
@@ -54,7 +158,9 @@ const ExpenseReport = () => {
           </div>
 
           <div className="flex flex-col w-1/4">
-            <label htmlFor="fromDate" className="text-sm font-medium mb-1">From *</label>
+            <label htmlFor="fromDate" className="text-sm font-medium mb-1">
+              From *
+            </label>
             <input
               type="date"
               id="fromDate"
@@ -62,15 +168,23 @@ const ExpenseReport = () => {
               value={formik.values.fromDate}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`border rounded p-2 ${formik.errors.fromDate && formik.touched.fromDate ? 'border-red-500' : ''}`}
+              className={`border rounded p-2 ${
+                formik.errors.fromDate && formik.touched.fromDate
+                  ? "border-red-500"
+                  : ""
+              }`}
             />
             {formik.errors.fromDate && formik.touched.fromDate ? (
-              <div className="text-red-500 text-sm">{formik.errors.fromDate}</div>
+              <div className="text-red-500 text-sm">
+                {formik.errors.fromDate}
+              </div>
             ) : null}
           </div>
 
           <div className="flex flex-col w-1/4">
-            <label htmlFor="toDate" className="text-sm font-medium mb-1">To *</label>
+            <label htmlFor="toDate" className="text-sm font-medium mb-1">
+              To *
+            </label>
             <input
               type="date"
               id="toDate"
@@ -78,7 +192,11 @@ const ExpenseReport = () => {
               value={formik.values.toDate}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`border rounded p-2 ${formik.errors.toDate && formik.touched.toDate ? 'border-red-500' : ''}`}
+              className={`border rounded p-2 ${
+                formik.errors.toDate && formik.touched.toDate
+                  ? "border-red-500"
+                  : ""
+              }`}
             />
             {formik.errors.toDate && formik.touched.toDate ? (
               <div className="text-red-500 text-sm">{formik.errors.toDate}</div>
@@ -97,34 +215,70 @@ const ExpenseReport = () => {
       </form>
 
       {/* Export Icons */}
-      <div className="flex space-x-4 mb-4">
-        <button className="p-2 border rounded hover:bg-gray-100">
-          <FaPrint className="text-gray-800" />
-        </button>
-        <button className="p-2 border rounded hover:bg-gray-100">
+      <div className="flex space-x-4 mb-4 justify-end">
+        <button
+          onClick={exportToPdf}
+          className="p-2 border rounded hover:bg-gray-100"
+        >
           <FaFilePdf className="text-red-600" />
         </button>
-        <button className="p-2 border rounded hover:bg-gray-100">
+        <button
+          onClick={handlePrint}
+          className="p-2 border rounded hover:bg-gray-100"
+        >
+          <FaPrint className="text-gray-800" />
+        </button>
+        <button
+          onClick={exportToExcel}
+          className="p-2 border rounded hover:bg-gray-100"
+        >
           <FaFileExcel className="text-green-600" />
         </button>
-        <button className="p-2 border rounded hover:bg-gray-100">
+        <button
+          onClick={exportToCsv}
+          className="p-2 border rounded hover:bg-gray-100"
+        >
           <FaFileCsv className="text-blue-600" />
         </button>
       </div>
 
-      {/* Report Summary */}
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex justify-between">
-            <span className="font-medium">Total Amount:</span>
-            <span>₹0.00</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">Period:</span>
-            <span>{formik.values.period}</span>
-          </div>
-        </div>
-        <div className="text-center mt-4 text-gray-500">No Result Found</div>
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-300">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b">Total Amount</th>
+              <th className="py-2 px-4 border-b">Period</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expenses ? (
+              expenses.map((expense) => (
+                <tr>
+                  <td className="py-2 px-4 border-b text-center">
+                    ₹{expense.totalExpense}
+                  </td>
+                  <td className="py-2 px-4 border-b text-center">
+                    {expense.period}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="text-center py-4">
+                  No expenses found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        <ToastContainer />
+      </div>
+
+      {/* Summary */}
+      <div className="mt-4">
+        <p>Overall Expense: ₹{total.toFixed(2)}</p>
       </div>
     </div>
   );

@@ -330,7 +330,7 @@ const PurchaseHistory = () => {
                       {purchase.paidAmount}
                     </td>
                     <td className="py-2 px-4 border-b border-gray-300">
-                      {purchase.dueAmount}
+                      {purchase.dueAmount.toFixed(2)}
                     </td>
                     <td className="py-2 px-4 border-b border-gray-300">
                       {new Date(purchase.purchaseDate).toLocaleDateString()}

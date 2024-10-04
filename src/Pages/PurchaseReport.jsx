@@ -60,13 +60,6 @@ const PurchaseReport = () => {
     },
   });
 
-  const reportData = {
-    totalAmount: 47.56,
-    paidAmount: 5.0,
-    dueAmount: 42.56,
-    period: "30 September 2024",
-  };
-
   // Export functions
   const exportToPdf = () => {
     const doc = new jsPDF();
@@ -93,7 +86,7 @@ const PurchaseReport = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = utils.json_to_sheet([reportData]);
+    const worksheet = utils.json_to_sheet([purchases]);
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, "Report");
     writeFile(workbook, "purchase_report.xlsx");
@@ -101,7 +94,7 @@ const PurchaseReport = () => {
   };
 
   const exportToCsv = () => {
-    const csv = Papa.unparse([reportData]);
+    const csv = Papa.unparse([purchases]);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);

@@ -259,11 +259,11 @@ const MainLayout = () => {
           icon: <FontAwesomeIcon icon={faAngleRight} />,
           label: "Sale Summary Report",
         },
-        {
-          key: "saledetailedreport",
-          icon: <FontAwesomeIcon icon={faAngleRight} />,
-          label: "Sale Detailed Report",
-        },
+        // {
+        //   key: "saledetailedreport",
+        //   icon: <FontAwesomeIcon icon={faAngleRight} />,
+        //   label: "Sale Detailed Report",
+        // },
         {
           key: "purchasereport",
           icon: <FontAwesomeIcon icon={faAngleRight} />,

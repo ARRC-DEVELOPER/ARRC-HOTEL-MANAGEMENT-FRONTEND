@@ -5,10 +5,10 @@ import userReducer from "./reducers/userReducer";
 import adminReducer from "./reducers/adminReducer";
 
 // PRODUCTION
-// export const server = "https://blog-server-sp45.onrender.com/api/v1";
+export const server = "https://arrc-hotel-management-server.onrender.com/api/v1";
 
 // DEVELOPMENT
-export const server = "http://127.0.0.1:5000/api/v1";
+// export const server = "http://127.0.0.1:5000/api/v1";
 
 const store = configureStore({
   reducer: {

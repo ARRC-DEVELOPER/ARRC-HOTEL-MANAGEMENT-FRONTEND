@@ -135,10 +135,10 @@ function App() {
                     path="salesummaryreport"
                     element={<SaleSummaryReport />}
                   />
-                  <Route
+                  {/* <Route
                     path="saledetailedreport"
                     element={<SaleDetailedReport />}
-                  />
+                  /> */}
                   <Route path="purchasereport" element={<PurchaseReport />} />
                   <Route path="expensereport" element={<ExpenseReport />} />
                   <Route
