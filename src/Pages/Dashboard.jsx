@@ -1,12 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend, ArcElement, BarElement } from 'chart.js';
-import { Bar, Pie, Line } from 'react-chartjs-2';
-import { FaChartLine, FaShoppingCart, FaMoneyBill, FaBox } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { server } from "../redux/store";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  BarElement,
+} from "chart.js";
+import { Bar, Pie, Line } from "react-chartjs-2";
+import {
+  FaChartLine,
+  FaShoppingCart,
+  FaMoneyBill,
+  FaBox,
+} from "react-icons/fa";
 
-ChartJS.register(LineElement, BarElement, ArcElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
+ChartJS.register(
+  LineElement,
+  BarElement,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Dashboard = () => {
+  const [saleSummary, setSaleSummary] = useState({});
+
+  useEffect(() => {
+    const fetchSalesSummary = async () => {
+      try {
+        const response = await axios.get(
+          `${server}/salesSummary/todays-saleSummary`,
+          {
+            headers: {
+              "Content-type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+        setSaleSummary(response.data.data);
+      } catch (error) {
+        console.error("Error fetching expenses:", error);
+      }
+    };
+
+    fetchSalesSummary();
+  }, []);
+
   // State to store API data
   const [sales, setSales] = useState(0);
   const [purchases, setPurchases] = useState(0);
@@ -21,14 +71,14 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const salesData = await axios.get('/api/sales'); // Replace with actual API URL
-        const purchaseData = await axios.get('/api/purchases');
-        const expenseData = await axios.get('/api/expenses');
-        const discountData = await axios.get('/api/discounts');
-        const taxData = await axios.get('/api/taxes');
-        const customerDueData = await axios.get('/api/customer-due');
-        const supplierDueData = await axios.get('/api/supplier-due');
-        const orderData = await axios.get('/api/orders');
+        const salesData = await axios.get("/api/sales"); // Replace with actual API URL
+        const purchaseData = await axios.get("/api/purchases");
+        const expenseData = await axios.get("/api/expenses");
+        const discountData = await axios.get("/api/discounts");
+        const taxData = await axios.get("/api/taxes");
+        const customerDueData = await axios.get("/api/customer-due");
+        const supplierDueData = await axios.get("/api/supplier-due");
+        const orderData = await axios.get("/api/orders");
 
         // Set the data to state variables
         setSales(salesData.data.totalSales);
@@ -49,85 +99,111 @@ const Dashboard = () => {
 
   // Chart data and options
   const lineChartData = {
-    labels: ['Aug 2023', 'Sep 2023', 'Oct 2023', 'Nov 2023', 'Dec 2023', 'Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024'],
+    labels: [
+      "Aug 2023",
+      "Sep 2023",
+      "Oct 2023",
+      "Nov 2023",
+      "Dec 2023",
+      "Jan 2024",
+      "Feb 2024",
+      "Mar 2024",
+      "Apr 2024",
+      "May 2024",
+      "Jun 2024",
+      "Jul 2024",
+    ],
     datasets: [
       {
-        label: 'Sales',
+        label: "Sales",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sales],
         fill: true,
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: "rgba(54, 162, 235, 0.2)",
+        borderColor: "rgba(54, 162, 235, 1)",
         tension: 0.4,
       },
       {
-        label: 'Purchases',
+        label: "Purchases",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, purchases],
         fill: true,
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: "rgba(75, 192, 192, 1)",
         tension: 0.4,
       },
       {
-        label: 'Expenses',
+        label: "Expenses",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, expenses],
         fill: true,
-        backgroundColor: 'rgba(255, 206, 86, 0.2)',
-        borderColor: 'rgba(255, 206, 86, 1)',
+        backgroundColor: "rgba(255, 206, 86, 0.2)",
+        borderColor: "rgba(255, 206, 86, 1)",
         tension: 0.4,
       },
       {
-        label: 'Discounts',
+        label: "Discounts",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, discounts],
         fill: true,
-        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-        borderColor: 'rgba(153, 102, 255, 1)',
+        backgroundColor: "rgba(153, 102, 255, 0.2)",
+        borderColor: "rgba(153, 102, 255, 1)",
         tension: 0.4,
       },
       {
-        label: 'Taxes',
+        label: "Taxes",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, taxes],
         fill: true,
-        backgroundColor: 'rgba(255, 159, 64, 0.2)',
-        borderColor: 'rgba(255, 159, 64, 1)',
+        backgroundColor: "rgba(255, 159, 64, 0.2)",
+        borderColor: "rgba(255, 159, 64, 1)",
         tension: 0.4,
-      }
+      },
     ],
   };
 
   const barChartData = {
-    labels: ['Aug 2023', 'Sep 2023', 'Oct 2023', 'Nov 2023', 'Dec 2023', 'Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024'],
+    labels: [
+      "Aug 2023",
+      "Sep 2023",
+      "Oct 2023",
+      "Nov 2023",
+      "Dec 2023",
+      "Jan 2024",
+      "Feb 2024",
+      "Mar 2024",
+      "Apr 2024",
+      "May 2024",
+      "Jun 2024",
+      "Jul 2024",
+    ],
     datasets: [
       {
-        label: 'Sales',
+        label: "Sales",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sales],
-        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: "rgba(54, 162, 235, 0.6)",
+        borderColor: "rgba(54, 162, 235, 1)",
         borderWidth: 1,
       },
       {
-        label: 'Taxes',
+        label: "Taxes",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, taxes],
-        backgroundColor: 'rgba(255, 159, 64, 0.6)',
-        borderColor: 'rgba(255, 159, 64, 1)',
+        backgroundColor: "rgba(255, 159, 64, 0.6)",
+        borderColor: "rgba(255, 159, 64, 1)",
         borderWidth: 1,
       },
       {
-        label: 'Discounts',
+        label: "Discounts",
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, discounts],
-        backgroundColor: 'rgba(153, 102, 255, 0.6)',
-        borderColor: 'rgba(153, 102, 255, 1)',
+        backgroundColor: "rgba(153, 102, 255, 0.6)",
+        borderColor: "rgba(153, 102, 255, 1)",
         borderWidth: 1,
       },
     ],
   };
 
   const pieData = {
-    labels: ['Dine In', 'Pick Up', 'Delivery'],
+    labels: ["Dine In", "Pick Up", "Delivery"],
     datasets: [
       {
         data: [45, 37, 18],
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
+        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
       },
     ],
   };
@@ -136,11 +212,11 @@ const Dashboard = () => {
     responsive: true,
     plugins: {
       legend: {
-        position: 'top',
+        position: "top",
       },
       title: {
         display: true,
-        text: 'Sale by Order Type (This Month)',
+        text: "Sale by Order Type (This Month)",
       },
     },
   };
@@ -152,10 +228,10 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Total Orders</h2>
-            <p className="text-2xl">{orders}</p>
+            <p className="text-2xl">{saleSummary.overAllOrders}</p>
             <p className="text-sm text-gray-500">All Time</p>
           </div>
-          <div className='w-16 h-16 rounded-full shadow-lg bg-green-100 flex items-center justify-center'>
+          <div className="w-16 h-16 rounded-full shadow-lg bg-green-100 flex items-center justify-center">
             <FaBox className="text-green-500 text-3xl" />
           </div>
         </div>
@@ -164,10 +240,15 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Total Sales</h2>
-            <p className="text-2xl">₹{sales}</p>
+            <p className="text-2xl">
+              ₹
+              {saleSummary.overAllSales
+                ? saleSummary.overAllSales.toFixed(2)
+                : saleSummary.overAllSales}
+            </p>
             <p className="text-sm text-gray-500">All Time</p>
           </div>
-          <div className='w-16 h-16 rounded-full shadow-lg bg-blue-100 flex items-center justify-center'>
+          <div className="w-16 h-16 rounded-full shadow-lg bg-blue-100 flex items-center justify-center">
             <FaChartLine className="text-blue-500 text-3xl" />
           </div>
         </div>
@@ -176,10 +257,15 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Total Purchases</h2>
-            <p className="text-2xl">₹{purchases}</p>
+            <p className="text-2xl">
+              ₹
+              {saleSummary.overAllPurchases
+                ? saleSummary.overAllPurchases.toFixed(2)
+                : saleSummary.overAllPurchases}
+            </p>
             <p className="text-sm text-gray-500">All Time</p>
           </div>
-          <div className='w-16 h-16 rounded-full shadow-lg bg-green-100 flex items-center justify-center'>
+          <div className="w-16 h-16 rounded-full shadow-lg bg-green-100 flex items-center justify-center">
             <FaShoppingCart className="text-green-500 text-3xl" />
           </div>
         </div>
@@ -188,10 +274,15 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Total Expenses</h2>
-            <p className="text-2xl">₹{expenses}</p>
+            <p className="text-2xl">
+              ₹
+              {saleSummary.overAllExpenses
+                ? saleSummary.overAllExpenses.toFixed(2)
+                : saleSummary.overAllExpenses}
+            </p>
             <p className="text-sm text-gray-500">All Time</p>
           </div>
-          <div className='w-16 h-16 rounded-full shadow-lg bg-red-100 flex items-center justify-center'>
+          <div className="w-16 h-16 rounded-full shadow-lg bg-red-100 flex items-center justify-center">
             <FaMoneyBill className="text-red-500 text-3xl" />
           </div>
         </div>
@@ -209,27 +300,27 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h4 className="text-sm text-gray-500">Sales</h4>
-              <p className="text-xl font-bold">₹{sales}</p>
+              <p className="text-xl font-bold">₹{saleSummary.total}</p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Orders</h4>
-              <p className="text-xl font-bold">{orders}</p>
+              <p className="text-xl font-bold">{saleSummary.orderQuantity}</p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Purchases</h4>
-              <p className="text-xl font-bold">₹{purchases}</p>
+              <p className="text-xl font-bold">₹{saleSummary.purchase}</p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Expenses</h4>
-              <p className="text-xl font-bold">₹{expenses}</p>
+              <p className="text-xl font-bold">₹{saleSummary.expense}</p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Customer Due</h4>
-              <p className="text-xl font-bold">₹{customerDue}</p>
+              <p className="text-xl font-bold">₹{saleSummary.customerDue}</p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Supplier Due</h4>
-              <p className="text-xl font-bold">₹{supplierDue}</p>
+              <p className="text-xl font-bold">₹{saleSummary.supplierDue}</p>
             </div>
           </div>
         </div>
