@@ -228,7 +228,27 @@ const StockAlertReport = () => {
               </th>
             </tr>
           </thead>
-          suppliers
+          <tbody>
+            {ingredients ? (
+              ingredients.map((ingredient) => (
+                <tr>
+                  <td className="py-2 px-4 border-b">{ingredient.name}</td>
+                  <td className="py-2 px-4 border-b">
+                    {ingredient.quantity} {ingredient.unit}
+                  </td>
+                  <td className="py-2 px-4 border-b">
+                    {ingredient.alertQuantity}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="text-center py-4">
+                  No stocks found.
+                </td>
+              </tr>
+            )}
+          </tbody>
         </table>
 
         <ToastContainer />
