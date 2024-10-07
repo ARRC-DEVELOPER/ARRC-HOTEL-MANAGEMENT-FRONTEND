@@ -66,6 +66,12 @@ const MainLayout = () => {
     setFullscreen(!fullscreen);
   };
 
+  const dispatch = useDispatch();
+  const logoutHandler = () => {
+    dispatch(logout());
+    navigate("/");
+  };
+
   const allMenuItems = [
     {
       key: "/",
@@ -182,16 +188,17 @@ const MainLayout = () => {
           icon: <FontAwesomeIcon icon={faAngleRight} />,
           label: "Accounts",
         },
-        {
-          key: "deposits",
-          icon: <FontAwesomeIcon icon={faAngleRight} />,
-          label: "Deposits",
-        },
-        {
-          key: "transfers",
-          icon: <FontAwesomeIcon icon={faAngleRight} />,
-          label: "Transfers",
-        },
+
+        // {
+        //   key: "deposits",
+        //   icon: <FontAwesomeIcon icon={faAngleRight} />,
+        //   label: "Deposits",
+        // },
+        // {
+        //   key: "transfers",
+        //   icon: <FontAwesomeIcon icon={faAngleRight} />,
+        //   label: "Transfers",
+        // },
 
         {
           key: "expenses",
@@ -458,6 +465,7 @@ const MainLayout = () => {
           key: "/",
           icon: <FontAwesomeIcon icon={faAngleRight} />,
           label: "Logout",
+          onClick: logoutHandler,
         },
       ],
     },
@@ -480,15 +488,9 @@ const MainLayout = () => {
     ? filterMenuItems(allMenuItems, user.permissions)
     : allMenuItems;
 
-  const dispatch = useDispatch();
-  const logoutHandler = () => {
-    dispatch(logout());
-    navigate("/");
-  };
-
   const accountMenu = (
     <Menu>
-      <Link to="/admin/changepassword">Change Password</Link>
+      <Link to="/changepassword">Change Password</Link>
       <br />
       <button onClick={logoutHandler}>
         <Link>Logout</Link>

@@ -1,32 +1,61 @@
-import React from 'react';
-import { Formik, Field, Form } from 'formik';
-import * as Yup from 'yup';
-import toast, { Toaster } from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { Formik, Field, Form } from "formik";
+import { server } from "../redux/store";
+import axios from "axios";
+import * as Yup from "yup";
+import toast, { Toaster } from "react-hot-toast";
 
 const Transactions = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, perPage: 10 });
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [pagination]);
+
+  console.log(transactions);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get(`${server}/other/getTransactions`);
+      setTransactions(response.data.transactions || []);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      toast.error("Faild To Update!", {
+        position: "top-center",
+      });
+    }
+  };
+
   // Validation schema for the form
   const validationSchema = Yup.object().shape({
-    account: Yup.string().required('Account is required'),
-    from: Yup.date().required('From date is required'),
-    to: Yup.date().required('To date is required'),
+    account: Yup.string().required("Account is required"),
+    from: Yup.date().required("From date is required"),
+    to: Yup.date().required("To date is required"),
   });
 
   // Handle form submission
   const handleSubmit = (values) => {
     // Display success notification
-    toast.success('Form submitted successfully!');
+    toast.success("Form submitted successfully!");
     console.log(values);
   };
 
   return (
     <div className="p-6">
       <Toaster />
-      
+
       {/* Breadcrumbs */}
       <nav className="text-sm font-medium text-gray-700 mb-6">
         <ol className="list-reset flex">
-          <li><a href="#" className="text-blue-600 hover:text-blue-800">Home</a></li>
-          <li><span className="mx-2"></span></li>
+          <li>
+            <a href="#" className="text-blue-600 hover:text-blue-800">
+              Home
+            </a>
+          </li>
+          <li>
+            <span className="mx-2"></span>
+          </li>
           <li>Transactions</li>
         </ol>
       </nav>
@@ -36,7 +65,7 @@ const Transactions = () => {
 
       {/* Form */}
       <Formik
-        initialValues={{ account: '', from: '', to: '' }}
+        initialValues={{ account: "", from: "", to: "" }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
@@ -129,19 +158,13 @@ const Transactions = () => {
             <thead>
               <tr>
                 <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-700">
+                  #
+                </th>
+                <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-700">
                   Account
                 </th>
                 <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-700">
                   Type
-                </th>
-                <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-700">
-                  Reference
-                </th>
-                <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-700">
-                  Credit
-                </th>
-                <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-700">
-                  Debit
                 </th>
                 <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-700">
                   Balance
@@ -155,11 +178,30 @@ const Transactions = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="8" className="px-4 py-2 text-center text-gray-500">
-                  No Result Found
-                </td>
-              </tr>
+              {transactions.length > 0 ? (
+                transactions.map((transaction, index) => (
+                  <tr key={transaction._id}>
+                    <td className="py-2 px-4 border">
+                      {(pagination.page - 1) * pagination.perPage + index + 1}
+                    </td>
+                    <td className="py-2 px-4 border">
+                      {transaction.accountNumber}
+                    </td>
+                    <td className="py-2 px-4 border">{transaction.type}</td>
+                    <td className="py-2 px-4 border">{transaction.amount}</td>
+                    <td className="py-2 px-4 border">{transaction.date}</td>
+                    <td className="py-2 px-4 border">
+                      {transaction.description}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="py-2 px-4 border text-center">
+                    No Results Found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

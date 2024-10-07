@@ -21,8 +21,8 @@ import AddModifiers from "./Pages/AddModifiers.jsx";
 import AddIngredient from "./Pages/AddIngredient.jsx";
 import Ingredient from "./Pages/Ingredient.jsx";
 import Accounts from "./Pages/Accounts.jsx";
-import Deposits from "./Pages/Deposits.jsx";
-import Transfers from "./Pages/Transfers.jsx";
+// import Deposits from "./Pages/Deposits.jsx";
+// import Transfers from "./Pages/Transfers.jsx";
 import Expenses from "./Pages/Expenses";
 import Transactions from "./Pages/Transactions.jsx";
 import AddCustomer from "./Pages/AddCustomer.jsx";
@@ -33,7 +33,7 @@ import WorkPeriodReport from "./Pages/WorkPeriodReport.jsx";
 import SaleReport from "./Pages/SaleReport.jsx";
 import ItemSaleReport from "./Pages/ItemSaleReport.jsx";
 import SaleSummaryReport from "./Pages/SaleSummaryReport.jsx";
-import SaleDetailedReport from "./Pages/SaleDetailedReport.jsx";
+// import SaleDetailedReport from "./Pages/SaleDetailedReport.jsx";
 import PurchaseReport from "./Pages/PurchaseReport.jsx";
 import ExpenseReport from "./Pages/ExpensesReport.jsx";
 import StockAlertReport from "./Pages/StockAlertReport.jsx";
@@ -117,8 +117,8 @@ function App() {
                   <Route path="ingredient" element={<Ingredient />} />
                   <Route path="addingredient" element={<AddIngredient />} />
                   <Route path="accounts" element={<Accounts />} />
-                  <Route path="deposits" element={<Deposits />} />
-                  <Route path="transfers" element={<Transfers />} />
+                  {/* <Route path="deposits" element={<Deposits />} />
+                  <Route path="transfers" element={<Transfers />} /> */}
                   <Route path="expenses" element={<Expenses />} />
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="addCustomer" element={<AddCustomer />} />

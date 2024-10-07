@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { debounce } from 'lodash';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { debounce } from "lodash";
+import { server } from "../redux/store";
 
 const Accounts = () => {
   const [accounts, setAccounts] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAccount, setNewAccount] = useState({
-    name: '',
-    number: '',
+    name: "",
+    number: "",
     balance: 0,
-    note: ''
+    note: "",
   });
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [page, setPage] = useState(1);
@@ -28,17 +29,18 @@ const Accounts = () => {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://arrc-tech.onrender.com/api/accounts', {
+      const response = await axios.get(`${server}/accounts/getAccounts`, {
         params: {
           page,
           perPage,
-          search
-        }
+          search,
+        },
       });
+
       setAccounts(response.data.accounts);
       setTotal(response.data.total);
     } catch (error) {
-      toast.error('Error fetching accounts: ' + error.message);
+      toast.error("Error fetching accounts: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -46,12 +48,12 @@ const Accounts = () => {
 
   const debouncedSearch = debounce((value) => {
     setSearch(value);
-    setPage(1); // Reset page to 1 when searching
+    setPage(1);
     fetchAccounts();
   }, 500);
 
   const handleAddNew = () => {
-    setNewAccount({ name: '', number: '', balance: 0, note: '' });
+    setNewAccount({ name: "", number: "", balance: 0, note: "" });
     setSelectedAccount(null);
     setIsModalOpen(true);
   };
@@ -60,17 +62,27 @@ const Accounts = () => {
     try {
       let response;
       if (selectedAccount) {
-        response = await axios.put(`https://arrc-tech.onrender.com/api/accounts/${selectedAccount._id}`, newAccount);
-        setAccounts(accounts.map((acc) => (acc._id === response.data._id ? response.data : acc)));
-        toast.success('Account updated successfully');
+        response = await axios.put(
+          `${server}/accounts/updateAccount/${selectedAccount._id}`,
+          newAccount
+        );
+        setAccounts(
+          accounts.map((acc) =>
+            acc._id === response.data._id ? response.data : acc
+          )
+        );
+        toast.success("Account updated successfully");
       } else {
-        response = await axios.post('https://arrc-tech.onrender.com/api/accounts', newAccount);
+        response = await axios.post(
+          `${server}/accounts/createAccount`,
+          newAccount
+        );
         setAccounts([...accounts, response.data]);
-        toast.success('Account created successfully');
+        toast.success("Account created successfully");
       }
       setIsModalOpen(false);
     } catch (error) {
-      toast.error('Error saving account: ' + error.message);
+      toast.error("Error saving account: " + error.message);
     }
   };
 
@@ -81,44 +93,20 @@ const Accounts = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this account?')) {
+    if (window.confirm("Are you sure you want to delete this account?")) {
       try {
-        await axios.delete(`https://arrc-tech.onrender.com/api/accounts/${id}`);
+        await axios.delete(`${server}/accounts/deleteAccount/${id}`);
         setAccounts(accounts.filter((account) => account._id !== id));
-        toast.success('Account deleted successfully');
+        toast.success("Account deleted successfully");
       } catch (error) {
-        toast.error('Error deleting account: ' + error.message);
+        toast.error("Error deleting account: " + error.message);
       }
     }
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setNewAccount({ name: '', number: '', balance: 0, note: '' });
-  };
-
-  const handleTransfer = async (fromAccountId, toAccountId, amount) => {
-    try {
-      const response = await axios.post('https://arrc-tech.onrender.com/api/transfer', {
-        fromAccountId,
-        toAccountId,
-        amount
-      });
-
-      // Update accounts state with transfer results
-      setAccounts(accounts.map(account => {
-        if (account._id === fromAccountId) {
-          return { ...account, debit: (account.debit || 0) + amount, balance: (account.balance || 0) - amount };
-        } else if (account._id === toAccountId) {
-          return { ...account, credit: (account.credit || 0) + amount, balance: (account.balance || 0) + amount };
-        }
-        return account;
-      }));
-
-      toast.success('Transfer successful');
-    } catch (error) {
-      toast.error('Error during transfer: ' + error.message);
-    }
+    setNewAccount({ name: "", number: "", balance: 0, note: "" });
   };
 
   const filteredAccounts = accounts.filter((account) =>
@@ -129,7 +117,10 @@ const Accounts = () => {
     <div className="p-6 bg-gray-50">
       {/* Breadcrumb Navigation */}
       <div className="mb-4 flex items-center text-gray-600">
-        <a href="/" className="text-blue-500 hover:underline">Home</a> &gt;
+        <a href="/" className="text-blue-500 hover:underline">
+          Home
+        </a>{" "}
+        &gt;
         <span className="ml-2 font-semibold text-gray-800">Accounts</span>
       </div>
 
@@ -147,7 +138,9 @@ const Accounts = () => {
       {/* Search and Entries Per Page */}
       <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <label htmlFor="search" className="text-gray-700">Search:</label>
+          <label htmlFor="search" className="text-gray-700">
+            Search:
+          </label>
           <input
             id="search"
             type="text"
@@ -180,30 +173,66 @@ const Accounts = () => {
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-gray-300 px-4 py-2 text-left">#</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Account Name</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Account Number</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Credit</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Debit</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Balance</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Note</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Updated At</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Updated By</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Account Name
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Account Number
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Credit
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Debit
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Balance
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Note
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Updated At
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Updated By
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {filteredAccounts.length > 0 ? (
               filteredAccounts.map((account, index) => (
                 <tr key={account._id} className="hover:bg-gray-50">
-                  <td className="border border-gray-300 px-4 py-2">{(page - 1) * perPage + index + 1}</td>
-                  <td className="border border-gray-300 px-4 py-2">{account.name}</td>
-                  <td className="border border-gray-300 px-4 py-2">{account.number}</td>
-                  <td className="border border-gray-300 px-4 py-2">₹{account.credit?.toFixed(2)}</td>
-                  <td className="border border-gray-300 px-4 py-2">₹{account.debit?.toFixed(2)}</td>
-                  <td className="border border-gray-300 px-4 py-2">₹{account.balance?.toFixed(2)}</td>
-                  <td className="border border-gray-300 px-4 py-2">{account.note}</td>
-                  <td className="border border-gray-300 px-4 py-2">{new Date(account.updatedAt).toLocaleString()}</td>
-                  <td className="border border-gray-300 px-4 py-2">{account.updatedBy}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {(page - 1) * perPage + index + 1}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.name}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.number}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    ₹{account.credit?.toFixed(2)}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    ₹{account.debit?.toFixed(2)}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    ₹{account.balance?.toFixed(2)}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.note}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {new Date(account.updatedAt).toLocaleString()}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {account.updatedBy}
+                  </td>
                   <td className="border border-gray-300 px-4 py-2 flex space-x-2">
                     <button
                       onClick={() => handleEdit(account)}
@@ -222,7 +251,12 @@ const Accounts = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="10" className="text-center border border-gray-300 px-4 py-2">No accounts found</td>
+                <td
+                  colSpan="10"
+                  className="text-center border border-gray-300 px-4 py-2"
+                >
+                  No accounts found
+                </td>
               </tr>
             )}
           </tbody>
@@ -239,9 +273,13 @@ const Accounts = () => {
           >
             Previous
           </button>
-          <span className="mx-4 text-gray-700">Page {page} of {Math.ceil(total / perPage)}</span>
+          <span className="mx-4 text-gray-700">
+            Page {page} of {Math.ceil(total / perPage)}
+          </span>
           <button
-            onClick={() => setPage(page < Math.ceil(total / perPage) ? page + 1 : page)}
+            onClick={() =>
+              setPage(page < Math.ceil(total / perPage) ? page + 1 : page)
+            }
             disabled={page >= Math.ceil(total / perPage)}
             className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
           >
@@ -254,13 +292,17 @@ const Accounts = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
           <div className="bg-white rounded-md p-6 shadow-lg w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-4">{selectedAccount ? 'Edit Account' : 'Add New Account'}</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {selectedAccount ? "Edit Account" : "Add New Account"}
+            </h2>
             <div className="mb-4">
               <label className="block text-gray-700">Account Name:</label>
               <input
                 type="text"
                 value={newAccount.name}
-                onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })}
+                onChange={(e) =>
+                  setNewAccount({ ...newAccount, name: e.target.value })
+                }
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
               />
             </div>
@@ -269,7 +311,9 @@ const Accounts = () => {
               <input
                 type="text"
                 value={newAccount.number}
-                onChange={(e) => setNewAccount({ ...newAccount, number: e.target.value })}
+                onChange={(e) =>
+                  setNewAccount({ ...newAccount, number: e.target.value })
+                }
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
               />
             </div>
@@ -278,7 +322,12 @@ const Accounts = () => {
               <input
                 type="number"
                 value={newAccount.balance}
-                onChange={(e) => setNewAccount({ ...newAccount, balance: parseFloat(e.target.value) })}
+                onChange={(e) =>
+                  setNewAccount({
+                    ...newAccount,
+                    balance: parseFloat(e.target.value),
+                  })
+                }
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
               />
             </div>
@@ -286,7 +335,9 @@ const Accounts = () => {
               <label className="block text-gray-700">Note:</label>
               <textarea
                 value={newAccount.note}
-                onChange={(e) => setNewAccount({ ...newAccount, note: e.target.value })}
+                onChange={(e) =>
+                  setNewAccount({ ...newAccount, note: e.target.value })
+                }
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
                 rows="3"
               />

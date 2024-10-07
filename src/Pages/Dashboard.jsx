@@ -57,46 +57,6 @@ const Dashboard = () => {
     fetchSalesSummary();
   }, []);
 
-  // State to store API data
-  const [sales, setSales] = useState(0);
-  const [purchases, setPurchases] = useState(0);
-  const [expenses, setExpenses] = useState(0);
-  const [discounts, setDiscounts] = useState(0);
-  const [taxes, setTaxes] = useState(0);
-  const [customerDue, setCustomerDue] = useState(0);
-  const [supplierDue, setSupplierDue] = useState(0);
-  const [orders, setOrders] = useState(0);
-
-  // Fetch data from API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const salesData = await axios.get("/api/sales"); // Replace with actual API URL
-        const purchaseData = await axios.get("/api/purchases");
-        const expenseData = await axios.get("/api/expenses");
-        const discountData = await axios.get("/api/discounts");
-        const taxData = await axios.get("/api/taxes");
-        const customerDueData = await axios.get("/api/customer-due");
-        const supplierDueData = await axios.get("/api/supplier-due");
-        const orderData = await axios.get("/api/orders");
-
-        // Set the data to state variables
-        setSales(salesData.data.totalSales);
-        setPurchases(purchaseData.data.totalPurchases);
-        setExpenses(expenseData.data.totalExpenses);
-        setDiscounts(discountData.data.totalDiscounts);
-        setTaxes(taxData.data.totalTaxes);
-        setCustomerDue(customerDueData.data.totalCustomerDue);
-        setSupplierDue(supplierDueData.data.totalSupplierDue);
-        setOrders(orderData.data.totalOrders);
-      } catch (error) {
-        console.error("Error fetching data", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   // Chart data and options
   const lineChartData = {
     labels: [
@@ -116,7 +76,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: "Sales",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sales],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.overAllSales],
         fill: true,
         backgroundColor: "rgba(54, 162, 235, 0.2)",
         borderColor: "rgba(54, 162, 235, 1)",
@@ -124,7 +84,7 @@ const Dashboard = () => {
       },
       {
         label: "Purchases",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, purchases],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.overAllPurchases],
         fill: true,
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         borderColor: "rgba(75, 192, 192, 1)",
@@ -132,7 +92,7 @@ const Dashboard = () => {
       },
       {
         label: "Expenses",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, expenses],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.overAllExpenses],
         fill: true,
         backgroundColor: "rgba(255, 206, 86, 0.2)",
         borderColor: "rgba(255, 206, 86, 1)",
@@ -140,7 +100,7 @@ const Dashboard = () => {
       },
       {
         label: "Discounts",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, discounts],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.discount],
         fill: true,
         backgroundColor: "rgba(153, 102, 255, 0.2)",
         borderColor: "rgba(153, 102, 255, 1)",
@@ -148,7 +108,7 @@ const Dashboard = () => {
       },
       {
         label: "Taxes",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, taxes],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.tax],
         fill: true,
         backgroundColor: "rgba(255, 159, 64, 0.2)",
         borderColor: "rgba(255, 159, 64, 1)",
@@ -175,21 +135,21 @@ const Dashboard = () => {
     datasets: [
       {
         label: "Sales",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sales],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.total],
         backgroundColor: "rgba(54, 162, 235, 0.6)",
         borderColor: "rgba(54, 162, 235, 1)",
         borderWidth: 1,
       },
       {
         label: "Taxes",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, taxes],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.tax],
         backgroundColor: "rgba(255, 159, 64, 0.6)",
         borderColor: "rgba(255, 159, 64, 1)",
         borderWidth: 1,
       },
       {
         label: "Discounts",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, discounts],
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.discount],
         backgroundColor: "rgba(153, 102, 255, 0.6)",
         borderColor: "rgba(153, 102, 255, 1)",
         borderWidth: 1,
@@ -201,7 +161,11 @@ const Dashboard = () => {
     labels: ["Dine In", "Pick Up", "Delivery"],
     datasets: [
       {
-        data: [45, 37, 18],
+        data: [
+          saleSummary?.orderTypeSummary?.DineIn || 0,
+          saleSummary?.orderTypeSummary?.Pickup || 0,
+          saleSummary?.orderTypeSummary?.Delivery || 0,
+        ],
         backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
         hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
       },
@@ -316,11 +280,11 @@ const Dashboard = () => {
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Customer Due</h4>
-              <p className="text-xl font-bold">₹{saleSummary.customerDue}</p>
+              <p className="text-xl font-bold">₹{saleSummary.customerDue && saleSummary.customerDue.toFixed(2)}</p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Supplier Due</h4>
-              <p className="text-xl font-bold">₹{saleSummary.supplierDue}</p>
+              <p className="text-xl font-bold">₹{saleSummary.supplierDue && saleSummary.supplierDue.toFixed(2)}</p>
             </div>
           </div>
         </div>
