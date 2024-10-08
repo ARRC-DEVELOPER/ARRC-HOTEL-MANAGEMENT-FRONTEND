@@ -35,6 +35,7 @@ ChartJS.register(
 
 const Dashboard = () => {
   const [saleSummary, setSaleSummary] = useState({});
+  const [monthlyData, setMonthlyData] = useState([]);
 
   useEffect(() => {
     const fetchSalesSummary = async () => {
@@ -54,29 +55,62 @@ const Dashboard = () => {
       }
     };
 
+    const fetchYearlyData = async () => {
+      try {
+        const res = await axios.get(`${server}/salesSummary/yearly-summary`, {
+          headers: {
+            "Content-type": "application/json",
+          },
+          withCredentials: true,
+        });
+        if (res.data.success) {
+          setMonthlyData(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching yearly summary", error);
+      }
+    };
+
     fetchSalesSummary();
+    fetchYearlyData();
   }, []);
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const salesData = monthlyData.map((data) => data.totalSales);
+  const taxesData = monthlyData.map((data) => data.totalTaxes);
+  const discountsData = monthlyData.map((data) => data.totalDiscounts);
+  const purchasesData = monthlyData.map((data) => data.totalPurchases);
+  const expensesData = monthlyData.map((data) => data.totalExpenses);
+
+  const currentMonthIndex = new Date().getMonth();
+  const currentMonthData = monthlyData[currentMonthIndex] || {};
+
+  // Extracting data for the current month
+  const dineInCount = currentMonthData.totalDinein || 0;
+  const pickupCount = currentMonthData.totalPickup || 0;
+  const deliveryCount = currentMonthData.totalDelivery || 0;
 
   // Chart data and options
   const lineChartData = {
-    labels: [
-      "Aug 2023",
-      "Sep 2023",
-      "Oct 2023",
-      "Nov 2023",
-      "Dec 2023",
-      "Jan 2024",
-      "Feb 2024",
-      "Mar 2024",
-      "Apr 2024",
-      "May 2024",
-      "Jun 2024",
-      "Jul 2024",
-    ],
+    labels: months,
     datasets: [
       {
         label: "Sales",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.overAllSales],
+        data: salesData,
         fill: true,
         backgroundColor: "rgba(54, 162, 235, 0.2)",
         borderColor: "rgba(54, 162, 235, 1)",
@@ -84,7 +118,7 @@ const Dashboard = () => {
       },
       {
         label: "Purchases",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.overAllPurchases],
+        data: purchasesData,
         fill: true,
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         borderColor: "rgba(75, 192, 192, 1)",
@@ -92,7 +126,7 @@ const Dashboard = () => {
       },
       {
         label: "Expenses",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.overAllExpenses],
+        data: expensesData,
         fill: true,
         backgroundColor: "rgba(255, 206, 86, 0.2)",
         borderColor: "rgba(255, 206, 86, 1)",
@@ -100,7 +134,7 @@ const Dashboard = () => {
       },
       {
         label: "Discounts",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.discount],
+        data: discountsData,
         fill: true,
         backgroundColor: "rgba(153, 102, 255, 0.2)",
         borderColor: "rgba(153, 102, 255, 1)",
@@ -108,7 +142,7 @@ const Dashboard = () => {
       },
       {
         label: "Taxes",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.tax],
+        data: taxesData,
         fill: true,
         backgroundColor: "rgba(255, 159, 64, 0.2)",
         borderColor: "rgba(255, 159, 64, 1)",
@@ -118,38 +152,27 @@ const Dashboard = () => {
   };
 
   const barChartData = {
-    labels: [
-      "Aug 2023",
-      "Sep 2023",
-      "Oct 2023",
-      "Nov 2023",
-      "Dec 2023",
-      "Jan 2024",
-      "Feb 2024",
-      "Mar 2024",
-      "Apr 2024",
-      "May 2024",
-      "Jun 2024",
-      "Jul 2024",
-    ],
+    labels: months,
     datasets: [
       {
         label: "Sales",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.total],
+        data: salesData,
         backgroundColor: "rgba(54, 162, 235, 0.6)",
         borderColor: "rgba(54, 162, 235, 1)",
         borderWidth: 1,
       },
+
       {
         label: "Taxes",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.tax],
+        data: taxesData,
         backgroundColor: "rgba(255, 159, 64, 0.6)",
         borderColor: "rgba(255, 159, 64, 1)",
         borderWidth: 1,
       },
+
       {
         label: "Discounts",
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, saleSummary.discount],
+        data: discountsData,
         backgroundColor: "rgba(153, 102, 255, 0.6)",
         borderColor: "rgba(153, 102, 255, 1)",
         borderWidth: 1,
@@ -161,11 +184,7 @@ const Dashboard = () => {
     labels: ["Dine In", "Pick Up", "Delivery"],
     datasets: [
       {
-        data: [
-          saleSummary?.orderTypeSummary?.DineIn || 0,
-          saleSummary?.orderTypeSummary?.Pickup || 0,
-          saleSummary?.orderTypeSummary?.Delivery || 0,
-        ],
+        data: [dineInCount, pickupCount, deliveryCount],
         backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
         hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
       },
@@ -264,7 +283,9 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h4 className="text-sm text-gray-500">Sales</h4>
-              <p className="text-xl font-bold">₹{saleSummary.total}</p>
+              <p className="text-xl font-bold">
+                ₹{saleSummary.total && saleSummary.total.toFixed(2)}
+              </p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Orders</h4>
@@ -280,11 +301,15 @@ const Dashboard = () => {
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Customer Due</h4>
-              <p className="text-xl font-bold">₹{saleSummary.customerDue && saleSummary.customerDue.toFixed(2)}</p>
+              <p className="text-xl font-bold">
+                ₹{saleSummary.customerDue && saleSummary.customerDue.toFixed(2)}
+              </p>
             </div>
             <div>
               <h4 className="text-sm text-gray-500">Supplier Due</h4>
-              <p className="text-xl font-bold">₹{saleSummary.supplierDue && saleSummary.supplierDue.toFixed(2)}</p>
+              <p className="text-xl font-bold">
+                ₹{saleSummary.supplierDue && saleSummary.supplierDue.toFixed(2)}
+              </p>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { server } from "../redux/store";
 import {
@@ -16,6 +17,7 @@ import {
 import CustomerModal from "./CustomerModal";
 import WaiterModal from "./WaiterModal";
 import DriverModal from "./DriverModal";
+import { useNavigate } from "react-router-dom";
 
 const Navrow = ({ selectedItems, subTotal, discount, charge, tax, total }) => {
   const [selectedTab, setSelectedTab] = useState("DineIn");
@@ -31,6 +33,8 @@ const Navrow = ({ selectedItems, subTotal, discount, charge, tax, total }) => {
   const [selectedWaiter, setSelectedWaiter] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [selectedGuest, setSelectedGuest] = useState(null);
+
+  const navigate = useNavigate();
 
   const orderDetails = {
     orderType: selectedTab,
@@ -124,6 +128,8 @@ const Navrow = ({ selectedItems, subTotal, discount, charge, tax, total }) => {
         },
         withCredentials: true,
       });
+
+      navigate("/orderhistory");
 
       toast.success("Order created successfully!", {
         position: "top-center",
@@ -443,8 +449,6 @@ const Navrow = ({ selectedItems, subTotal, discount, charge, tax, total }) => {
         onClose={() => setIsDriverModalOpen(false)}
         onSelectDriver={handleDriverSelection}
       />
-
-      <ToastContainer />
     </div>
   );
 };
